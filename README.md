@@ -35,7 +35,7 @@ With the above preparations, you can use the command line investigate inactive i
 
 1. Download and save the Python script:
    ```
-   curl -s https://raw.githubusercontent.com/data-henrik/ibmcloud-iam-keys-identities/main/IAMkeys.py
+   wget https://raw.githubusercontent.com/data-henrik/ibmcloud-iam-keys-identities/main/IAMkeys.py
    ```
 
 2. Run the Python script:
