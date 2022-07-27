@@ -1,22 +1,29 @@
+# Small script to retrieve information about API keys in an IBM Cloud account.
+# The API keys either belong to the user or the service IDs in the account.
+# For each API key details including the activity are retrieved. The activity
+# details may include the timestamp of the latest authentication and the number
+# of recorded authentications with that API key.
+#
+# Written by Henrik Loeser, hloeser@de.ibm.com
+
+# only standard packages are used, no installation necessary
 import requests, json, sys,os, base64
 from urllib.parse import urlparse,parse_qs
 
-iamInfoUrl="https://iam.cloud.ibm.com/identity/.well-known/openid-configuration"
-
-
+# to use pagination, the next page token is required
 def extractNextPageToken(next_url):
     o=urlparse(next_url)
     q=parse_qs(o.query)
     return q['pagetoken'][0]
 
-
+# read an API key from a JSON file
 def readApiKey(filename):
     with open(filename) as data_file:
         credentials = json.load(data_file)
     api_key = credentials.get('apikey')
     return api_key
 
-
+# obtain an access token from an IAM API key
 def getAuthTokens(api_key):
     url     = "https://iam.cloud.ibm.com/identity/token"
     headers = { "Content-Type" : "application/x-www-form-urlencoded" }
@@ -24,20 +31,21 @@ def getAuthTokens(api_key):
     response  = requests.post( url, headers=headers, data=data )
     return response.json()
 
+# retrieve details about an API key
 def getIAMDetails(api_key, iam_token):
     url     = "https://iam.cloud.ibm.com/v1/apikeys/details"
     headers = { "Authorization" : iam_token, "IAM-Apikey" : api_key, "Content-Type" : "application/json" }
     response  = requests.get( url, headers=headers )
     return response.json()
 
-
+# retrieve the list of accounts accessible using the token
 def getAccounts(iam_token):
     url     = "https://accounts.cloud.ibm.com/v1/accounts"
     headers = { "Authorization" : iam_token }
     response  = requests.get( url, headers=headers )
     return response.json()
 
-
+# retrieve all API keys for the given IAM ID (user or service)
 def getApiKeys(iam_token, account_id, iam_id):
     pagesize=100
     url = 'https://iam.cloud.ibm.com/v1/apikeys'
@@ -53,6 +61,7 @@ def getApiKeys(iam_token, account_id, iam_id):
         result['apikeys'].extend(temp['apikeys'])
     return result
 
+# get the details for an API key, including history and activities
 def getApiKeyDetails(iam_token, apikey_id):
     url = 'https://iam.cloud.ibm.com/v1/apikeys/{}'.format(apikey_id)
     headers = { "Authorization" : iam_token }
@@ -61,7 +70,7 @@ def getApiKeyDetails(iam_token, apikey_id):
     response = requests.get(url, headers=headers, params=payload)
     return response.json()
 
-
+# retrieve the list of service IDs
 def getServiceIDs(iam_token, account_id):
     pagesize=5
     url = 'https://iam.cloud.ibm.com/v1/serviceids'
@@ -117,6 +126,8 @@ if __name__== "__main__":
     iam_id=None
     account_id=None
 
+    # do we have any parameters like the credential file?
+    # if not, let's try to obtain the token from environment
     if (len(sys.argv)<2):
         if 'IBMCLOUD_TOKEN' in os.environ:
             iam_token=os.getenv('IBMCLOUD_TOKEN')
@@ -128,12 +139,12 @@ if __name__== "__main__":
             exit()
     elif (len(sys.argv)==2):
         credfile=sys.argv[1]
-        mode=1
     else:
         print ("unknown options")
         printHelp(sys.argv[0])
         exit()
 
+    # we don't have a token yet
     if iam_token is None:
         print ("Reading credentials")
         apiKey=readApiKey(credfile)
@@ -150,5 +161,5 @@ if __name__== "__main__":
         iam_id=accDetails['iam_id']
   
     
-    
+    # do the work
     getEverything(iam_token, account_id, iam_id)
