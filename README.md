@@ -40,11 +40,11 @@ With the above preparations, you can use the command line investigate inactive i
 
 2. Run the Python script:
    ```
-   python3 IAMkeys.ps
+   python3 IAMkeys.py
    ```
    By default, it produces the output as table with comma-separated values (CSV) with a subset of attributes, printing is immediate. The following parameter allows generating output in JSON format with all attributes included:
    ```
-   python3 IAMkeys.ps --output JSON
+   python3 IAMkeys.py --output JSON
    ```
    Note that to produce JSON output all data needs to be retrieved first before printing. Redirect the output to a file and use `jq` for postprocessing.
 
