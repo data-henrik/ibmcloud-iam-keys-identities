@@ -42,7 +42,10 @@ With the above preparations, you can use the command line investigate inactive i
    ```
    python3 IAMkeys.ps
    ```
-
+   By default, it produces the output as table with comma-separated values (CSV) with a subset of attributes. The following parameter allows generating output in JSON format with all attributes included:
+   ```
+   python3 IAMkeys.ps --output JSON
+   ```
 
 ## License
 See the [LICENSE](LICENSE) file.
