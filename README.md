@@ -60,6 +60,10 @@ Redirect the JSON output to a file and use `jq` for post-processing.
    ```
    cat myapikeys.json | jq -r '.[] | select(.activity | .authn_count==0)'
    ```
+   The same, but only return a subset of the properties:
+   ```
+   cat myapikeys.json | jq -r '.[] | select(.activity | .authn_count==0) | {id,history,activity,created_at}'
+   ```
 
 ## License
 See the [LICENSE](LICENSE) file.
