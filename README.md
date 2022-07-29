@@ -20,17 +20,17 @@ With the above preparations, you can use the command line investigate inactive i
 
 1. Trigger a new report about inactive identities. The result is the reference to the new report.
    ```
-   curl -X POST "https://iam.cloud.ibm.com/v1/activity/accounts/${IBMCLOUD_ACCOUNTID}/report" 
+   curl -X POST "https://iam.cloud.ibm.com/v1/activity/accounts/${IBMCLOUD_ACCOUNTID}/report" \
    -H "Authorization: ${IBMCLOUD_TOKEN}" -H 'Content-Type: application/json' 
    ```
    By default, the duration is 720 hours which is 30 days. You can change the duration by passing in an additional parameter. Adapt it to your preferences (shown for 90 days):
    ```
-   curl -X POST "https://iam.cloud.ibm.com/v1/activity/accounts/${IBMCLOUD_ACCOUNTID}/report?duration=2160" 
+   curl -X POST "https://iam.cloud.ibm.com/v1/activity/accounts/${IBMCLOUD_ACCOUNTID}/report?duration=2160" \
    -H "Authorization: ${IBMCLOUD_TOKEN}" -H 'Content-Type: application/json' 
    ```
 2. A some seconds to minute, you can retrieve the report. Using **latest** as reference, the latest available report is returned. Replace **latest** with the reference from the previous command to retrieve that specific report.
    ```
-   curl -s -X GET "https://iam.cloud.ibm.com/v1/activity/accounts/${IBMCLOUD_ACCOUNTID}/report/latest" 
+   curl -s -X GET "https://iam.cloud.ibm.com/v1/activity/accounts/${IBMCLOUD_ACCOUNTID}/report/latest" \
    -H "Authorization: ${IBMCLOUD_TOKEN}" -H 'Content-Type: application/json' | jq
    ```
 
@@ -49,7 +49,17 @@ With the above preparations, you can use the command line investigate inactive i
    ```
    python3 IAMkeys.py --output JSON
    ```
-   Note that to produce JSON output all data needs to be retrieved first before printing. Redirect the output to a file and use `jq` for post-processing.
+   Note that to produce JSON output all data needs to be retrieved first before printing. 
+   
+Redirect the JSON output to a file and use `jq` for post-processing. 
+1. Redirect the output:
+   ```
+   python3 IAMkeys.py --output JSON > myapikeys.json
+   ```
+2. Use `jq` to search for all API keys with an **authn_count** of zero (0):
+   ```
+   cat myapikeys.json | jq -r '.[] | select(.activity | .authn_count==0)'
+   ```
 
 ## License
 See the [LICENSE](LICENSE) file.
