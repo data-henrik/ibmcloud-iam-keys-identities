@@ -63,11 +63,14 @@ def getAccounts(iam_token):
     return response.json()
 
 # retrieve all API keys for the given IAM ID (user or service)
-def getApiKeys(iam_token, account_id, iam_id):
+def getApiKeys(iam_token, account_id, iam_id, id_type):
     pagesize=100
     url = 'https://iam.cloud.ibm.com/v1/apikeys'
     headers = { "Authorization" : iam_token }
-    payload = {"account_id": account_id, "iam_id": iam_id, "pagesize":pagesize}
+    if iam_id is None:
+        payload = {"account_id": account_id, "pagesize":pagesize, "scope":"account", "type": id_type}
+    else:
+        payload = {"account_id": account_id, "iam_id": iam_id, "pagesize":pagesize, "type": id_type}
     try:
         response = requests.get(url, headers=headers, params=payload)
         response.raise_for_status()
@@ -103,7 +106,7 @@ def getApiKeyDetails(iam_token, apikey_id):
 
 # retrieve the list of service IDs
 def getServiceIDs(iam_token, account_id):
-    pagesize=5
+    pagesize=25
     url = 'https://iam.cloud.ibm.com/v1/serviceids'
     headers = { "Authorization" : iam_token }
     payload = {"account_id": account_id, "pagesize": pagesize}
@@ -128,8 +131,8 @@ def getServiceIDs(iam_token, account_id):
     return result
 
 # loop over all the API keys for the (user / service) ID and retrieve the details
-def getAndPrintAPIKeys(iam_token, account_id, iam_id, out_format):
-    api_key_list=getApiKeys(iam_token, account_id, iam_id)
+def getAndPrintAPIKeys(iam_token, account_id, iam_id, id_type, out_format):
+    api_key_list=getApiKeys(iam_token, account_id, iam_id, id_type)
     for apikey in api_key_list['apikeys']:
         #print(apikey)
         apikey_details=getApiKeyDetails(iam_token, apikey['id'])
@@ -142,18 +145,30 @@ def getAndPrintAPIKeys(iam_token, account_id, iam_id, out_format):
         else:
             json_apikeys.append(apikey_details)
 
-# retrieve details on API keys for the current user and the related service IDs
+# as account admin, retrieve details on API keys for users and service IDs
+# in the entire account. This requires a broad set of privileges and might fail.
 def getEverything(iam_token,account_id, iam_id, out_format):
     if out_format=='CSV':
         print('iam_id, created_by, created_at, name, id, locked, last_authn, authn_count')
         
-    getAndPrintAPIKeys(iam_token, account_id, iam_id, out_format)
-    serviceids=getServiceIDs(iam_token, account_id)
-    for serviceid in serviceids['serviceids']:
-        #print()
-        getAndPrintAPIKeys(iam_token, account_id, serviceid['iam_id'], out_format)
+    getAndPrintAPIKeys(iam_token, account_id, None, 'user',out_format)
+    getAndPrintAPIKeys(iam_token, account_id, None, 'serviceid',out_format)
     if out_format=='JSON':
-        print(json.dumps(json_apikeys))
+       print(json.dumps(json_apikeys))
+
+# as regular user, retrieve details on API keys for the current user and the related service IDs
+def getEverythingUser(iam_token,account_id, iam_id, out_format):
+    if out_format=='CSV':
+        print('iam_id, created_by, created_at, name, id, locked, last_authn, authn_count')
+        
+    getAndPrintAPIKeys(iam_token, account_id, iam_id, 'user',out_format)
+    serviceids=getServiceIDs(iam_token, account_id)
+    
+    for serviceid in serviceids['serviceids']:
+       getAndPrintAPIKeys(iam_token, account_id, serviceid['iam_id'], 'serviceid', out_format)
+    if out_format=='JSON':
+       print(json.dumps(json_apikeys))
+
 
 # use split and base64 to get to the content of the IAM token
 def extractAccount(iam_token):
@@ -173,6 +188,7 @@ if __name__== "__main__":
     parser.add_argument('--output', choices=['CSV','JSON'], dest='out_format', default='CSV',
                         help='return output in CSV or JSON format')
     parser.add_argument('--credentials', type=str, action='store', dest='credfile', help='credential file to use')
+    parser.add_argument('--type', choices=['admin','user'], type=str, dest='usertype', default='admin', help='existing privilege scope')
     # parse the parameters
     args = parser.parse_args()
 
@@ -202,5 +218,7 @@ if __name__== "__main__":
         account_id=accDetails['account_id']
         iam_id=accDetails['iam_id']
   
-    #print(args.out_format)
-    getEverything(iam_token, account_id, iam_id, args.out_format)
+    if args.usertype=='admin':
+        getEverything(iam_token, account_id, iam_id, args.out_format)
+    else:
+        getEverythingUser(iam_token, account_id, iam_id, args.out_format)
