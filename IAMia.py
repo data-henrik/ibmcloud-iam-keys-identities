@@ -29,7 +29,7 @@ def getAuthTokens(api_key):
     try:
         response  = requests.post( url, headers=headers, data=data )
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e: 
         raise SystemExit(e)
     return response.json()
 
@@ -40,7 +40,7 @@ def getIAMDetails(api_key, iam_token):
     try:
         response  = requests.get( url, headers=headers )
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e:
         raise SystemExit(e)
     return response.json()
 
@@ -53,7 +53,7 @@ def getApiKeyDetails(iam_token, apikey_id):
     try:
         response = requests.get(url, headers=headers, params=payload)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e:
         raise SystemExit(e)
 
     return response.json()
@@ -67,7 +67,7 @@ def getTrustedProfileDetails(iam_token, profile_id):
     try:
         response = requests.get(url, headers=headers, params=payload)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e:
         raise SystemExit(e)
 
     return response.json()
@@ -78,12 +78,11 @@ def getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, report_id
    #  url = 'https://iam.cloud.ibm.com/v1/activity/accounts/{}/report/{}'.format(account_id,report_id)
    #  url = 'https://iam.cloud.ibm.com/v1/activity/accounts/' + account_id + '/report/latest'
     url = 'https://iam.cloud.ibm.com/v1/activity/accounts/{}/report/latest'.format(account_id)
-   #  print(url)
-    headers = { "Authorization" : iam_token }
+    headers = { "Authorization" : iam_token, "Content-Type" : "application/json" }
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e:
         raise SystemExit(e)
 
     result=response.json()
@@ -140,7 +139,7 @@ def triggerReport(iam_token, account_id, duration):
     try:
         response = requests.post(url, headers=headers)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e:
         raise SystemExit(e)
 
     return response.json()

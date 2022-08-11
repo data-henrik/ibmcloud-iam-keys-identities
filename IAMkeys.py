@@ -35,7 +35,7 @@ def getAuthTokens(api_key):
     try:
         response  = requests.post( url, headers=headers, data=data )
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e:
         raise SystemExit(e)
     return response.json()
 
@@ -46,7 +46,7 @@ def getIAMDetails(api_key, iam_token):
     try:
         response  = requests.get( url, headers=headers )
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e:
         raise SystemExit(e)
     return response.json()
 
@@ -57,7 +57,7 @@ def getAccounts(iam_token):
     try:
         response  = requests.get( url, headers=headers )
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e:
         raise SystemExit(e)
 
     return response.json()
@@ -74,7 +74,7 @@ def getApiKeys(iam_token, account_id, iam_id, id_type):
     try:
         response = requests.get(url, headers=headers, params=payload)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e:
         raise SystemExit(e)
 
     result=response.json()
@@ -84,7 +84,7 @@ def getApiKeys(iam_token, account_id, iam_id, id_type):
         try:
             response=requests.get(url, headers=headers, params=payload)
             response.raise_for_status()
-        except requests.exceptions.RequestException as e:  # This is the correct syntax
+        except requests.exceptions.RequestException as e:
             raise SystemExit(e)
         temp=response.json()
         result['apikeys'].extend(temp['apikeys'])
@@ -99,7 +99,7 @@ def getApiKeyDetails(iam_token, apikey_id):
     try:
         response = requests.get(url, headers=headers, params=payload)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e:
         raise SystemExit(e)
 
     return response.json()
@@ -113,7 +113,7 @@ def getServiceIDs(iam_token, account_id):
     try:
         response = requests.get(url, headers=headers, params=payload)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e:
         raise SystemExit(e)
 
     result=response.json()
@@ -123,7 +123,7 @@ def getServiceIDs(iam_token, account_id):
         try:
             response=requests.get(url, headers=headers, params=payload)
             response.raise_for_status()
-        except requests.exceptions.RequestException as e:  # This is the correct syntax
+        except requests.exceptions.RequestException as e:
             raise SystemExit(e)
 
         temp=response.json()
