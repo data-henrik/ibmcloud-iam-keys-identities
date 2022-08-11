@@ -74,10 +74,7 @@ def getTrustedProfileDetails(iam_token, profile_id):
 
 # loop over the IAM Inactive Identities Report (apikeys / users / trusted profiles) ID and retrieve the details
 def getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, report_id, level):
-   #  url = 'https://iam.cloud.ibm.com/v1/activity/accounts/' + account_id + '/report/' + report_id
-   #  url = 'https://iam.cloud.ibm.com/v1/activity/accounts/{}/report/{}'.format(account_id,report_id)
-   #  url = 'https://iam.cloud.ibm.com/v1/activity/accounts/' + account_id + '/report/latest'
-    url = 'https://iam.cloud.ibm.com/v1/activity/accounts/{}/report/latest'.format(account_id)
+    url = 'https://iam.cloud.ibm.com/v1/activity/accounts/{}/report/{}'.format(account_id,report_id)
     headers = { "Authorization" : iam_token, "Content-Type" : "application/json" }
     try:
         response = requests.get(url, headers=headers)
@@ -160,12 +157,15 @@ if __name__== "__main__":
 
     # define the command line arguments
     parser = argparse.ArgumentParser(description='Retrieve information from IAM Inactive Identities report in an IBM Cloud account')
+    parser.add_argument('--action', choices=['trigger','get'], dest='action', default='get',
+                        help='trigger or get a report')
     parser.add_argument('--output', choices=['CSV'], dest='out_format', default='CSV',
                         help='return output in CSV or JSON format')
     parser.add_argument('--credentials', type=str, action='store', dest='credfile', help='credential file to use')
     parser.add_argument('--duration', type=int, dest='duration', default=0, help='Optional duration of the report, supported unit of duration is hours')
     parser.add_argument('--level', choices=['standard','advanced'], dest='level', default='standard', 
                         help='Retrieve information from the report only (standard) or more detailed - takes longer to run - leveraging the APIs (advanced).')
+    parser.add_argument('--reportid', type=str, action='store', dest='reportid', default='latest', help='the report to retrieve')
     # parse the parameters
     args = parser.parse_args()
 
@@ -195,8 +195,12 @@ if __name__== "__main__":
         account_id=accDetails['account_id']
         iam_id=accDetails['iam_id']
   
-    if args.out_format=='CSV':
+    # either trigger a new report or
+    if args.action=='trigger':
       report=triggerReport(iam_token, account_id, args.duration)
       report_id=report['reference']
-      # print(report_id)
-      getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, report_id, args.level)
+      print("The report ID is: {}".format(report_id))
+    # retrieve an existing report
+    elif args.action=='get':
+        if args.out_format=='CSV':
+          getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, args.reportid, args.level)
