@@ -73,7 +73,7 @@ def getTrustedProfileDetails(iam_token, profile_id):
     return response.json()
 
 # loop over the IAM Inactive Identities Report (apikeys / users / trusted profiles) ID and retrieve the details
-def getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, report_id, level):
+def getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, report_id, level, out_format):
     url = 'https://iam.cloud.ibm.com/v1/activity/accounts/{}/report/{}'.format(account_id,report_id)
     headers = { "Authorization" : iam_token, "Content-Type" : "application/json" }
     try:
@@ -83,6 +83,11 @@ def getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, report_id
         raise SystemExit(e)
 
     result=response.json()
+
+    if out_format=='JSON':
+        print(json.dumps(result, indent=2))
+        return
+
 
     print('iam_id,name,last_authn,type,id,name,username,email,created_by,created_at,locked,authn_count')
     for apikey in result['apikeys']:
@@ -159,7 +164,7 @@ if __name__== "__main__":
     parser = argparse.ArgumentParser(description='Retrieve information from IAM Inactive Identities report in an IBM Cloud account')
     parser.add_argument('--action', choices=['trigger','get'], dest='action', default='get',
                         help='trigger or get a report')
-    parser.add_argument('--output', choices=['CSV'], dest='out_format', default='CSV',
+    parser.add_argument('--output', choices=['CSV','JSON'], dest='out_format', default='CSV',
                         help='return output in CSV or JSON format')
     parser.add_argument('--credentials', type=str, action='store', dest='credfile', help='credential file to use')
     parser.add_argument('--duration', type=int, dest='duration', default=0, help='Optional duration of the report, supported unit of duration is hours')
@@ -197,10 +202,10 @@ if __name__== "__main__":
   
     # either trigger a new report or
     if args.action=='trigger':
-      report=triggerReport(iam_token, account_id, args.duration)
-      report_id=report['reference']
-      print("The report ID is: {}".format(report_id))
+        report=triggerReport(iam_token, account_id, args.duration)
+        report_id=report['reference']
+        print("The report ID is: {}".format(report_id))
     # retrieve an existing report
     elif args.action=='get':
-        if args.out_format=='CSV':
-          getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, args.reportid, args.level)
+        getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, args.reportid, args.level, args.out_format)
+        
