@@ -81,8 +81,17 @@ Redirect the JSON output to a file and use `jq` for post-processing.
    ```
    wget https://raw.githubusercontent.com/data-henrik/ibmcloud-iam-keys-identities/main/IAMkia.py
    ```
+2. Create (trigger) a new report on inactive identities:
+   ```
+   python3 IAMia.py --action trigger
+   ```
+   This will trigger the creation of a new report with the default duration of 720 hours. To have a duration of 1440 hours (60 days), use an additional parameter:
+   ```
+   python3 IAMia.py --action trigger --duration 1440
+   ```
+   The result is the report ID which can be used when retrieving a report.
 
-2. Run the Python script:
+3. Retrieve an existing report by running the Python script:
    ```
    python3 IAMia.py
    ```
@@ -96,7 +105,17 @@ Redirect the JSON output to a file and use `jq` for post-processing.
    ```
    python3 IAMia.py --action get --reportid latest --level standard --output JSON
    ```
-   The script is instructed to get the latest report and print it as JSON with no further processing ("standard").
+   The script is instructed to get the latest report and print it as JSON with no further processing ("standard"). Instead of retrieving the latest report, you can also specify the report ID from the previous step. Note that if not retrieving the latest, the report should not be older than 24 hours.
+
+   To produce detailed output in CSV format with the history and authentication counts included, run the following:
+   ```
+   python3 IAMia.py --action get --reportid latest --level advanced --output CSV
+   ```
+   or the shorter equivalent
+   ```
+   python3 IAMia.py --level advanced
+   ```
+
 
 ## License
 See the [LICENSE](LICENSE) file.
