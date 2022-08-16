@@ -78,6 +78,7 @@ def getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, report_id
     headers = { "Authorization" : iam_token, "Content-Type" : "application/json" }
     try:
         response = requests.get(url, headers=headers)
+        # handle some known issues
         if response.status_code == 404:
             print("The requested report might have been replaced with a newer one or a wrong ID was provided.")
         elif response.status_code == 204:
@@ -88,11 +89,14 @@ def getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, report_id
 
     result=response.json()
 
-    if out_format=='JSON':
+    # only dump the original report for standard level
+    if out_format=='JSON' and level=='standard':
         print(json.dumps(result, indent=2))
         return
 
-
+    # go over the individual parts of the report
+    # - look up details if advanced level requested
+    # - convert to CSV
     print('iam_id,name,last_authn,type,id,name,username,email,created_by,created_at,locked,authn_count')
     for apikey in result['apikeys']:
          if apikey['type']=='serviceid':
