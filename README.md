@@ -15,7 +15,7 @@ All commands and scripts can be run in IBM Cloud Shell. The following steps are 
    ```
 
 
-### Use curl to trigger and retrieve report on inactive identities
+### A) Use curl to trigger and retrieve report on inactive identities
 With the above preparations, you can use the command line investigate inactive identities in your IBM Cloud account.
 
 1. Trigger a new report about inactive identities. The result is the reference to the new report.
@@ -34,8 +34,11 @@ With the above preparations, you can use the command line investigate inactive i
    -H "Authorization: ${IBMCLOUD_TOKEN}" -H 'Content-Type: application/json' | jq
    ```
 
-### Use Python to investigate your API keys and the API keys for your service IDs
+The Python script in section B.2 uses the same API functions as above.
 
+### B) Use Python to investigate your API keys and the API keys for your service IDs
+
+#### 1) Individual API functions: IAMkeys.py
 1. Download and save the Python script:
    ```
    wget https://raw.githubusercontent.com/data-henrik/ibmcloud-iam-keys-identities/main/IAMkeys.py
@@ -71,6 +74,29 @@ Redirect the JSON output to a file and use `jq` for post-processing.
    cat myapikeys.json | jq -r '.[] | select(.activity | .authn_count==0) | {id,name,description,history,activity,created_at}'
    ```
    Instead of checking for **authn_count** of zero, probing for a count of over ten is possible, too. Just use `.authn_count>10`.
+
+#### 2) Trigger and get the report in inactive identities: IAMia.py
+
+1. Download and save the Python script:
+   ```
+   wget https://raw.githubusercontent.com/data-henrik/ibmcloud-iam-keys-identities/main/IAMkia.py
+   ```
+
+2. Run the Python script:
+   ```
+   python3 IAMia.py
+   ```
+
+   With no parameters, it retrieves the latest report on inactive identities and prints it converted to CSV format (comma-separated values). To see the original JSON-based report, use the additional parameter:
+
+   ```
+   python3 IAMia.py --output JSON
+   ```
+   Running the above is the same as:
+   ```
+   python3 IAMia.py --action get --reportid latest --level standard --output JSON
+   ```
+   The script is instructed to get the latest report and print it as JSON with no further processing ("standard").
 
 ## License
 See the [LICENSE](LICENSE) file.
