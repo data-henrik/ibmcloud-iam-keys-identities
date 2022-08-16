@@ -78,6 +78,10 @@ def getAndPrintInactiveIdentitiesReport(iam_token, account_id, iam_id, report_id
     headers = { "Authorization" : iam_token, "Content-Type" : "application/json" }
     try:
         response = requests.get(url, headers=headers)
+        if response.status_code == 404:
+            print("The requested report might have been replaced with a newer one or a wrong ID was provided.")
+        elif response.status_code == 204:
+            print("The requested report might not be available yet. Try again shortly.")
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         raise SystemExit(e)
