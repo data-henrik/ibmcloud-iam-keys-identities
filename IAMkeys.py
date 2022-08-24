@@ -62,6 +62,32 @@ def getAccounts(iam_token):
 
     return response.json()
 
+# retrieve users in the account
+def getUsers(iam_token, account_id):
+    pagesize=1
+    base_url = 'https://user-management.cloud.ibm.com'
+    url=base_url+'/v2/accounts/'+account_id+'/users'
+    headers = { "Authorization" : iam_token }
+    payload = {"limit": pagesize}
+    try:
+        response = requests.get(url, headers=headers, params=payload)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:  # This is the correct syntax
+        raise SystemExit(e)
+    result=response.json()
+    temp=result
+    while 'next_url' in temp:
+        url=base_url+temp['next_url']
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:  # This is the correct syntax
+            raise SystemExit(e)
+    
+        temp=response.json()
+        result['resources'].extend(temp['resources'])
+    return result
+
 # retrieve all API keys for the given IAM ID (user or service)
 def getApiKeys(iam_token, account_id, iam_id, id_type):
     pagesize=100
@@ -131,14 +157,18 @@ def getServiceIDs(iam_token, account_id):
     return result
 
 # loop over all the API keys for the (user / service) ID and retrieve the details
-def getAndPrintAPIKeys(iam_token, account_id, iam_id, id_type, out_format):
+def getAndPrintAPIKeys(iam_token, account_id, iam_id, id_type, out_format, users):
     api_key_list=getApiKeys(iam_token, account_id, iam_id, id_type)
     for apikey in api_key_list['apikeys']:
         #print(apikey)
         apikey_details=getApiKeyDetails(iam_token, apikey['id'])
         # some tricky printing because "activity" and last_authn might not be present
         if out_format=='CSV':
-            print("{},{},{},{},{},{},{},{}".format(apikey_details['iam_id'],apikey_details['created_by'],apikey_details['created_at'],
+            # identity the email address
+            filtered_values = [x['email'] for x in users['resources'] if apikey_details['created_by'] in x.values() ]
+            # print line of data
+            print("{},{},{},{},{},{},{},{}".format(apikey_details['iam_id'],apikey_details['created_by'],
+                                            filtered_values[0] if filtered_values else None, apikey_details['created_at'],
                                             apikey_details['name'],apikey_details['id'],apikey_details['locked'],
                                             apikey_details.get('activity',{}).get('last_authn',None),
                                             apikey_details.get('activity',{}).get('authn_count', None)))
@@ -149,10 +179,12 @@ def getAndPrintAPIKeys(iam_token, account_id, iam_id, id_type, out_format):
 # in the entire account. This requires a broad set of privileges and might fail.
 def getEverything(iam_token,account_id, iam_id, out_format):
     if out_format=='CSV':
-        print('iam_id, created_by, created_at, name, id, locked, last_authn, authn_count')
-        
-    getAndPrintAPIKeys(iam_token, account_id, None, 'user',out_format)
-    getAndPrintAPIKeys(iam_token, account_id, None, 'serviceid',out_format)
+        print('iam_id, created_by, created_by_email, created_at, name, id, locked, last_authn, authn_count')
+
+    # retrieve all account users to augment output list with email address for iam_id
+    users=getUsers(iam_token, account_id)
+    getAndPrintAPIKeys(iam_token, account_id, None, 'user',out_format, users)
+    getAndPrintAPIKeys(iam_token, account_id, None, 'serviceid',out_format, users)
     if out_format=='JSON':
        print(json.dumps(json_apikeys))
 
@@ -161,11 +193,11 @@ def getEverythingUser(iam_token,account_id, iam_id, out_format):
     if out_format=='CSV':
         print('iam_id, created_by, created_at, name, id, locked, last_authn, authn_count')
         
-    getAndPrintAPIKeys(iam_token, account_id, iam_id, 'user',out_format)
+    getAndPrintAPIKeys(iam_token, account_id, iam_id, 'user',out_format, None)
     serviceids=getServiceIDs(iam_token, account_id)
     
     for serviceid in serviceids['serviceids']:
-       getAndPrintAPIKeys(iam_token, account_id, serviceid['iam_id'], 'serviceid', out_format)
+       getAndPrintAPIKeys(iam_token, account_id, serviceid['iam_id'], 'serviceid', out_format, None)
     if out_format=='JSON':
        print(json.dumps(json_apikeys))
 
