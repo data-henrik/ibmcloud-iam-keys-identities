@@ -1,6 +1,7 @@
 # Information about inactive identities and API keys in your IBM Cloud account
 Retrieve information about IBM Cloud IAM keys and identify inactive identities. The requests with `curl` and those in the Python script utilize the [IBM Cloud IAM Identity Services API](https://cloud.ibm.com/apidocs/iam-identity-token-api). The Python script runs in an optimized mode by default, assuming that account management privileges are present. The script can be invoked with an additional parameter to run in a scoped-down approach.
 
+See the related blog post: [Cloud Security: Identify Inactive Identities](https://www.ibm.com/cloud/blog/cloud-security-identify-inactive-identities)
 
 ### Preparation
 All commands and scripts can be run in IBM Cloud Shell. The following steps are needed to get started.
