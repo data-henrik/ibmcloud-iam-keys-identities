@@ -123,7 +123,7 @@ The Python script in section B.2 uses the same API functions as above.
    ```
    Note that to produce JSON output all data needs to be retrieved first before printing. 
 
-   Use the help parameter to see further filtering options. They allow to reduce the output to a specific policy type or IAM object type like access group.
+   Use the help parameter to see further filtering options. They allow to reduce the output to a specific policy type (`--type`) or IAM object type like access group or trusted profile (`--iamtype`).
    ```
    python3 IAMpolicies.py --help
    ```

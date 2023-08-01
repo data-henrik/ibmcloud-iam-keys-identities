@@ -27,7 +27,10 @@ def getAuthTokens(api_key):
         raise SystemExit(e)
     return response.json()
 
-
+# retrieve all API keys for the given IAM ID (user or service)
+# https://cloud.ibm.com/apidocs/iam-policy-management#list-policies
+# NOTE: This function is not used, but shown for easy fallback to or
+#       additional activation of the version 1 API
 def getPoliciesV1(iam_token, account_id, iam_id, id_type):
     pagesize=100
     url = 'https://iam.cloud.ibm.com/v1/policies'
@@ -59,6 +62,8 @@ def getPoliciesV2(iam_token, account_id, iam_id, id_type):
     result=response.json()
     return result
 
+# NOTE: This function is not used, but shown for easy fallback to or
+#       additional activation of the version 1 API
 def getEverythingV1(iam_token,account_id, out_format):
     policy_list=getPoliciesV1(iam_token, account_id, None, None)
     if out_format=='JSON':
@@ -82,7 +87,7 @@ def getEverythingV1(iam_token,account_id, out_format):
         raise("unsupported format")
 
 
-
+# retrieve the IAM policies and process them
 def getEverythingV2(iam_token,account_id, out_format, subject_types, iam_types):
     policy_list=getPoliciesV2(iam_token, account_id, None, None)
     res_list=[]
@@ -126,6 +131,7 @@ def extractAccount(iam_token):
     jsondata = json.loads(base64.urlsafe_b64decode(padded))
     return jsondata
 
+# main function
 if __name__== "__main__":
     credfile=None
     iam_token=None
@@ -163,5 +169,7 @@ if __name__== "__main__":
     token_data=extractAccount(iam_token)
     account_id=token_data["account"]["bss"]
     iam_id=token_data['iam_id']
+
+    # call into the V2-related processing
     getEverythingV2(iam_token, account_id, args.out_format, args.subject_types, args.iam_types)
   
